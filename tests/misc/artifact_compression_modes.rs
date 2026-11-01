@@ -59,6 +59,9 @@ fn artifact_modes_round_trip() {
             .unwrap()
             .unwrap();
     assert!(!navigation.navigation.definitions.is_empty());
+    assert!(navigation.navigation.symbols.iter().any(|symbol| {
+        symbol.name == "v" && symbol.location.as_ref().is_some_and(|loc| loc.line == 2)
+    }));
     assert!(
         xezim_core::read_compiled(dir.join("b_navigation").to_str().unwrap())
             .unwrap()
@@ -84,7 +87,7 @@ fn artifact_modes_round_trip() {
         "raw must be larger than zstd"
     );
 
-    for n in ["b_default", "b_none", "b_19"] {
+    for n in ["b_default", "b_navigation", "b_none", "b_19"] {
         // `--verbose`: "Loaded compiled:" is part of the run banner.
         let o = Command::new(&bin)
             .arg("--simulate")
