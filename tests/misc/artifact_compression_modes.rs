@@ -45,8 +45,38 @@ fn artifact_modes_round_trip() {
         );
     };
     compile("b_default", &[]);
+    compile("b_navigation", &["--xez-navigation"]);
     compile("b_none", &["--artifact-compression", "none"]);
     compile("b_19", &["--artifact-compression=19"]);
+
+    let ordinary =
+        xezim_core::read_compiled_with_navigation(dir.join("b_default").to_str().unwrap())
+            .unwrap()
+            .unwrap();
+    assert!(ordinary.navigation.definitions.is_empty());
+    let navigation =
+        xezim_core::read_compiled_with_navigation(dir.join("b_navigation").to_str().unwrap())
+            .unwrap()
+            .unwrap();
+    assert!(!navigation.navigation.definitions.is_empty());
+    assert!(
+        xezim_core::read_compiled(dir.join("b_navigation").to_str().unwrap())
+            .unwrap()
+            .unwrap()
+            .navigation
+            .definitions
+            .is_empty()
+    );
+    let missing_output = Command::new(&bin)
+        .args(["--compile", "--xez-navigation"])
+        .arg(dir.join("t.sv"))
+        .output()
+        .expect("invalid invocation");
+    assert!(!missing_output.status.success());
+    assert!(
+        String::from_utf8_lossy(&missing_output.stderr)
+            .contains("--xez-navigation requires --compile -o")
+    );
 
     let sz = |n: &str| std::fs::metadata(dir.join(n)).map(|m| m.len()).unwrap_or(0);
     assert!(

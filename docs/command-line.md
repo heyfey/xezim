@@ -35,6 +35,7 @@ how to use them together, see the [user guide](user-guide.md).
 | `--dump-files-list` | Print the fully resolved file list after `-f` expansion, then exit — confirms *which* sources a build actually reads |
 | `--dump-merged-sv <file>` | Write the sources as one preprocessed, self-contained `.sv`. With `-s <top>`, keeps only the files that top needs. See the [user guide](user-guide.md#reducing-a-multi-file-build) |
 | `--artifact-compression <none\|1-22>` | Compression level for the `-o` compiled artifact (`none` writes it raw) |
+| `--xez-navigation` | With `--compile -o`, include source locations and original hierarchy names in an optional `.xez` trailer. Omitted by default; ordinary artifact simulation skips loading it |
 | `--cache-dir <dir>` | Select the automatic elaborated-design cache directory |
 | `--no-cache` | Disable the automatic elaborated-design cache |
 | `-l`, `--log <file>` | Redirect all stdout/stderr — including DPI/VPI C output — to a log file |

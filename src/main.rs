@@ -201,6 +201,7 @@ fn print_usage() {
     eprintln!("                   dir and uvm_pkg.sv); XEZIM_UVM_VERSION picks a release");
     eprintln!("  -s <topmodule>   Specify the top-level module to elaborate");
     eprintln!("  --no-sim         Alias for --compile (deprecated)");
+    eprintln!("  --xez-navigation  With --compile -o, include source locations in the artifact");
     eprintln!("  --preprocess     Run the preprocessor only; emit expanded text");
     eprintln!("  --dump-tokens    With --parse, print the token stream");
     eprintln!("  --dump-ast       With --parse, print the AST");
@@ -2082,6 +2083,7 @@ fn run_main() -> i32 {
     }
     let mut verbose = false;
     let mut _output_file: Option<String> = None;
+    let mut xez_navigation = false;
     let mut lib_dirs: Vec<String> = Vec::new();
     let mut lib_files: Vec<String> = Vec::new();
     let mut lib_exts: Option<Vec<String>> = None;
@@ -2203,6 +2205,9 @@ fn run_main() -> i32 {
                 if i < args.len() {
                     _output_file = Some(args[i].clone());
                 }
+            }
+            "--xez-navigation" => {
+                xez_navigation = true;
             }
             _ if arg.starts_with("-o") && arg.len() > 2 => {
                 _output_file = Some(arg[2..].to_string());
@@ -3159,6 +3164,10 @@ fn run_main() -> i32 {
     if verbose {
         xezim::set_compile_verbose(true);
     }
+    if xez_navigation && (mode != Mode::Compile || _output_file.is_none()) {
+        eprintln!("Error: --xez-navigation requires --compile -o <artifact>");
+        std::process::exit(1);
+    }
     // Internal engine chatter (run banner, [PHASE] timings, end-of-run engine
     // counters) is off by default: a plain run prints the design's own
     // output, warnings/errors and the final result line. `--profile` sets
@@ -3788,13 +3797,14 @@ suppressed but the explicit SDF annotation still applies."
                 *t = rewritten;
             }
         }
-        match xezim_core::parse_and_elaborate_multi_preprocessed(
+        match xezim_core::parse_and_elaborate_multi_preprocessed_with_navigation(
             &sources,
             top_module.as_deref(),
             &include_dirs,
             &source_files,
             &defines,
             Some(pre),
+            xez_navigation,
         ) {
             Ok((_defs, mut elab)) => {
                 // Second-pass `should_fail` lint (additive — does not alter the
